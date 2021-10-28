@@ -1,0 +1,48 @@
+---
+title: "RWK4"
+output: html_document
+---
+
+# Import Library
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+library(here)
+library(sf)
+library(janitor)
+library(sp)
+library(tmap)
+library(tmaptools)
+```
+
+# Read Data
+```{r message=FALSE, warning=FALSE}
+mycsv <- read_csv('Gender Inequality Index (GII)_only2.csv',na = c("..", "NA"))
+myshape <- st_read(here::here("World_Countries_(Generalized)","World_Countries__Generalized_.shp"))
+```
+
+# Clean Data & Calculate the difference
+```{r warning=FALSE}
+filcsv <- mycsv%>%
+  clean_names()%>%
+  filter(x2019 !="..")%>%
+  filter(x2010!="..")
+diffcsv <- filcsv%>%
+  mutate(diff = x2019-x2010)
+```
+
+## Merge & Plot
+```{r warning=FALSE}
+worldmap <- myshape %>%
+  clean_names()%>%
+# the . here just means use the data already loaded
+  merge(.,
+        diffcsv, 
+        by.x="country", 
+        by.y="country",
+        no.dups = TRUE)
+tmap_mode('plot')
+worldmap%>%
+  qtm(.,fil='diff')
+```
+
+
